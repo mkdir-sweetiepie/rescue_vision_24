@@ -83,15 +83,14 @@ bool MASTER::init()
   ros::NodeHandle n;
   image_transport::ImageTransport img(n);
 
+  n.getParam("/master/camera", param);
+  ROS_INFO("Starting Rescue Vision With Camera : %s", param.c_str());
   // Add your ros communications here.
   img_result = img.advertise("/qr_image", 100);
   c_result1_pub = n.advertise<std_msgs::Int32>("/c_result1", 10);
   c_result2_pub = n.advertise<std_msgs::Int32>("/c_result2", 10);
 
-  n.getParam("/usb_cam/image_raw", param);
-  ROS_INFO("Starting Rescue Vision With Camera : %s", param.c_str());
-
-  img_sub = img.subscribe("/usb_cam/image_raw", 100, &MASTER::imageCallBack, this);  /// camera/color/image_raw
+  img_sub = img.subscribe(param, 100, &MASTER::imageCallBack, this);  /// camera/color/image_raw
 
   return true;
 }
@@ -819,7 +818,7 @@ void MASTER::check_moving(double averageAngle1)
       else if (direction == 0)
       {
         cout << "stop" << endl;
-        movement_count ++;
+        movement_count++;
       }
     }
 

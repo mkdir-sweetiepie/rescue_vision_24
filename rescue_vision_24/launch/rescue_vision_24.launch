@@ -1,7 +1,26 @@
 <launch>
-    <include file="$(find usb_cam)/launch/usb_cam-test.launch" />
+    <arg name="camera_type" default="rs" />
+    <arg name="type" />
+    <arg name="camera"  default="/camera/color/image_raw"  />
+    <arg name="rs1" default="021222073502" />
+    <arg name="rs2" default="948522070995" />
 
-    <node pkg="rescue_vision_24" type="master" name="master" output="screen"/>
-    
+
+  <!-- front realsense default="/camera/color/image_raw" 
+default="/usb_cam/image_raw"
+  -->
+    <group if="$(eval camera_type=='rs')" >
+        <include file="$(find realsense2_camera)/launch/rs_camera.launch" >
+        </include>
+    </group>
+
+    <group if="$(eval camera_type=='usb')" >
+        <include file="$(find usb_cam)/launch/usb_cam-test.launch" >
+        </include>
+    </group>
+
+    <node pkg="rescue_vision_24" type="master" name="master" output="screen">
+        <param name="camera" type="string" value="$(arg camera)"/>
+    </node>     
 
 </launch>
