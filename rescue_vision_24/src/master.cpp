@@ -35,7 +35,7 @@ using namespace cv;
 using namespace std;
 using namespace ros;
 
-MASTER::MASTER(int argc, char** argv) : init_argc(argc), init_argv(argv), isRecv(false)
+MASTER::MASTER(int argc, char** argv) : init_argc(argc), init_argv(argv), isRecv(false), isRecv_thermal(false)
 {
   std::string packagePath = ros::package::getPath("rescue_vision_24");
   cout << packagePath << endl;
@@ -83,15 +83,17 @@ bool MASTER::init()
   ros::NodeHandle n;
   image_transport::ImageTransport img(n);
 
-  n.getParam("/master/camera", param);
-  ROS_INFO("Starting Rescue Vision With Camera : %s", param.c_str());
   // Add your ros communications here.
-  img_result = img.advertise("/qr_image", 100);
-  c_result1_pub = n.advertise<std_msgs::Int32>("/c_result1", 10);
-  c_result2_pub = n.advertise<std_msgs::Int32>("/c_result2", 10);
+  img_result = img.advertise("/victim_image", 1);
+  img_result_thermal = img.advertise("/img_result_thermal", 1);
 
-  img_sub = img.subscribe(param, 100, &MASTER::imageCallBack, this);  /// camera/color/image_raw
-
+  // cam 정보
+  n.param<std::string>("cam1_topic", cam1_topic_name, "/camera/color/image_raw");  // realsense
+  n.param<std::string>("cam2_topic", cam2_topic_name, "/usb_cam/image_raw");       // usbcam
+  ROS_INFO("Starting Rescue Vision With Camera : %s", cam1_topic_name.c_str());
+  img_sub = img.subscribe(cam1_topic_name, 1, &MASTER::imageCallBack, this);  // camera/color/image_raw
+  img_sub_thermal = img.subscribe("/thermal_camera/image_colored", 1, &MASTER::imageCallBack_thermal, this);
+  victim_start_sub = n.subscribe("/victim_start", 1, &MASTER::start_CallBack, this);
   return true;
 }
 
@@ -104,6 +106,12 @@ void MASTER::run()
     loop_rate.sleep();
     if (isRecv == true)
     {
+      if (isRecv_thermal == true)
+      {
+        set_thermal();
+        img_result_thermal.publish(
+            cv_bridge::CvImage(std_msgs::Header(), sensor_msgs::image_encodings::BGR8, thermal_mat).toImageMsg());
+      }
       update();
     }
   }
@@ -121,34 +129,46 @@ void MASTER::imageCallBack(const sensor_msgs::ImageConstPtr& msg_img)
   }
 }
 
+void MASTER::start_CallBack(const std_msgs::Int32ConstPtr& msg_img)
+{
+  victim_start = msg_img->data;
+}
+
+void MASTER::imageCallBack_thermal(const sensor_msgs::ImageConstPtr& msg_img)
+{
+  if (!isRecv_thermal)
+  {
+    original_thermal = new cv::Mat(cv_bridge::toCvCopy(msg_img, sensor_msgs::image_encodings::BGR8)->image);
+    if (original_thermal != NULL)
+    {
+      isRecv_thermal = true;
+    }
+  }
+}
+
+void MASTER::set_thermal()
+{
+  thermal_mat = original_thermal->clone();
+  cv::resize(thermal_mat, thermal_mat, cv::Size(640, 480), 0, 0, cv::INTER_CUBIC);
+  delete original_thermal;
+  isRecv_thermal = false;
+}
+
 void MASTER::update()
 {
   clone_mat = original->clone();
   cv::resize(clone_mat, clone_mat, cv::Size(640, 480), 0, 0, cv::INTER_CUBIC);
-
-  //박스 중앙 맞추기 코드
-  if (victim_start == false)
-  {
-    set_qr();
-  }
 
   if (victim_start == true)
   {
     set_qr();
     set_hazmat();
     set_c();
-    if (find_one)
-    {
-      detect_way();
-
-      find_one = false;
-    }
   }
-
   delete original;
   isRecv = false;
 }
-
+// =========================================================================================
 void MASTER::set_hazmat()
 {
   auto output_names = net.getUnconnectedOutLayersNames();
@@ -201,7 +221,6 @@ void MASTER::set_hazmat()
       auto idx = indices[c][i];
       const auto& rect = boxes[c][idx];
 
-      // Check for overlapping boxes of the same class
       isOverlapping = false;
       if (indices[c].size() != 0)
       {
@@ -213,16 +232,13 @@ void MASTER::set_hazmat()
             const auto& rect2 = boxes[c][idx2];
             if (isRectOverlapping(rect, rect2))
             {
-              // If there is an overlapping box, check the sizes
               if (rect2.area() < rect.area())
               {
-                // If the other box is smaller, mark it as overlapping and break
                 isOverlapping = true;
                 break;
               }
               else
               {
-                // If the current box is smaller, skip it
                 continue;
               }
             }
@@ -230,7 +246,16 @@ void MASTER::set_hazmat()
         }
       }
 
-      // Draw the box only if it is not overlapping with a smaller box
+      // QR 박스와 겹치는지 확인
+      for (const auto& qr_rect : qr_boxes)
+      {
+        if (isRectOverlapping(rect, qr_rect))
+        {
+          isOverlapping = true;
+          break;
+        }
+      }
+
       if (!isOverlapping)
       {
         cv::rectangle(frame, cv::Point(rect.x, rect.y), cv::Point(rect.x + rect.width, rect.y + rect.height), color, 3);
@@ -241,31 +266,36 @@ void MASTER::set_hazmat()
 
         int baseline;
         auto label_bg_sz = cv::getTextSize(label.c_str(), cv::FONT_HERSHEY_COMPLEX_SMALL, 1, 1, &baseline);
-        cv::rectangle(frame, cv::Point(rect.x, rect.y - label_bg_sz.height - baseline - 10),
-                      cv::Point(rect.x + label_bg_sz.width, rect.y), color, cv::FILLED);
-        cv::putText(frame, label.c_str(), cv::Point(rect.x, rect.y - baseline - 5), cv::FONT_HERSHEY_COMPLEX_SMALL, 1,
-                    cv::Scalar(0, 0, 0));
+
+        int label_x = rect.x;
+        if (label_x + label_bg_sz.width > frame.cols)
+        {
+          label_x = frame.cols - label_bg_sz.width - 10;
+        }
+        if (label_x < 0)
+        {
+          label_x = 10;
+        }
+
+        if ((rect.y - label_bg_sz.height - baseline - 10) >= 0)
+        {
+          cv::rectangle(frame, cv::Point(label_x, rect.y - label_bg_sz.height - baseline - 10),
+                        cv::Point(label_x + label_bg_sz.width, rect.y), cv::Scalar(255, 255, 255), cv::FILLED);
+          cv::putText(frame, label.c_str(), cv::Point(label_x, rect.y - baseline - 5), cv::FONT_HERSHEY_COMPLEX_SMALL,
+                      1, cv::Scalar(0, 0, 0));
+        }
+        else
+        {
+          cv::rectangle(
+              frame, cv::Point(label_x, rect.y + rect.height),
+              cv::Point(label_x + label_bg_sz.width, rect.y + rect.height + label_bg_sz.height + baseline + 10),
+              cv::Scalar(255, 255, 255), cv::FILLED);
+          cv::putText(frame, label.c_str(), cv::Point(label_x, rect.y + rect.height + baseline + 5),
+                      cv::FONT_HERSHEY_COMPLEX_SMALL, 1, cv::Scalar(0, 0, 0));
+        }
       }
     }
   }
-
-  auto total_end = std::chrono::steady_clock::now();
-
-  float inference_fps = 1000.0 / std::chrono::duration_cast<std::chrono::milliseconds>(dnn_end - dnn_start).count();
-  float total_fps = 1000.0 / std::chrono::duration_cast<std::chrono::milliseconds>(total_end - total_start).count();
-  std::ostringstream stats_ss;
-  stats_ss << std::fixed << std::setprecision(2);
-  stats_ss << "Inference FPS: " << inference_fps << ", Total FPS: " << total_fps;
-  auto stats = stats_ss.str();
-
-  int baseline;
-  auto stats_bg_sz = cv::getTextSize(stats.c_str(), cv::FONT_HERSHEY_COMPLEX_SMALL, 1, 1, &baseline);
-  // cv::rectangle(frame, cv::Point(0, 0), cv::Point(stats_bg_sz.width, stats_bg_sz.height + 10),cv::Scalar(0,
-  // 0, 0),
-  //               cv::FILLED);
-  // cv::putText(frame, stats.c_str(), cv::Point(0, stats_bg_sz.height + 5),cv::FONT_HERSHEY_COMPLEX_SMALL, 1,
-  //             cv::Scalar(255, 255, 255));
-
   if (qr_flag == false)
     img_result.publish(cv_bridge::CvImage(std_msgs::Header(), sensor_msgs::image_encodings::BGR8, frame).toImageMsg());
 }
@@ -300,11 +330,14 @@ void MASTER::set_qr()
       cv::Point2i bg_top_left(points[0].x / 2, points[0].y - text_size.height - 20);
       cv::Point2i bg_bottom_right(bg_top_left.x + text_size.width, bg_top_left.y + text_size.height + 5);
 
+      cv::Rect qr_rect(bg_top_left, bg_bottom_right);
+      qr_boxes.push_back(qr_rect);
+
       cv::rectangle(output_qr, bg_top_left, bg_bottom_right, cv::Scalar(0, 0, 0), -1);  // -1은 사각형을 채우라는 의미
       cv::putText(output_qr, info, cv::Point(points[0].x / 2, points[0].y - 20), cv::FONT_HERSHEY_SIMPLEX, 1,
                   cv::Scalar(255, 255, 255), 2);
       cv::polylines(output_qr, points, true, cv::Scalar(0, 0, 0), 5);
-      cout << info << endl;
+      // cout << info << endl;
       // cv::putText(clone_mat, info, cv::Point(10, 30), cv::FONT_HERSHEY_PLAIN, 2, cv::Scalar(0, 0, 255), 3);
       // std::cout << info << std::endl;  // 콘솔에 QR 코드 정보 출력
     }
@@ -312,7 +345,10 @@ void MASTER::set_qr()
       img_result.publish(
           cv_bridge::CvImage(std_msgs::Header(), sensor_msgs::image_encodings::BGR8, output_qr).toImageMsg());
   }
-  qr_flag = false;
+  else
+  {
+    qr_flag = false;
+  }
 }
 // ===========================================================================================
 
@@ -320,10 +356,8 @@ void MASTER::set_c()
 {
   output_c = clone_mat.clone();
   cv::cvtColor(output_c, gray_clone, cv::COLOR_BGR2GRAY);
-
   cv::GaussianBlur(gray_clone, gray_clone, cv::Size(5, 5), 0);
   cv::Canny(gray_clone, gray_clone, 100, 300);
-
   cv::HoughCircles(gray_clone, circles, cv::HOUGH_GRADIENT, 1, gray_clone.rows / 8, 200, 50, 10,
                    120);  // 1: 입력 이미지와 같은 해상도
 
@@ -345,11 +379,53 @@ void MASTER::set_c()
       {
         catch_c(center, two_radius);
 
-        // cv::circle(output_c, center, two_radius, cv::Scalar(0, 255, 0), 2);  // 바깥원
+        cv::circle(output_c, center, two_radius, cv::Scalar(0, 255, 0), 2);  // 바깥원
         // cv::circle(clone_mat, center, 1, cv::Scalar(255, 0, 0), 1);           // 중심원
       }
     }
+    cv::rectangle(output_c, cv::Rect(0, 0, 200, 50), cv::Scalar(255, 255, 255), cv::FILLED, 8);
+    switch (result_maxAngle)
+    {
+      case -3:
+        cv::putText(output_c, "left_down", cv::Point(0, 30), 0.5, 1, cv::Scalar(0, 0, 0), 2, 8);
+        break;
+      case -2:
+        cv::putText(output_c, "down", cv::Point(0, 30), 0.5, 1, cv::Scalar(0, 0, 0), 2, 8);
+        break;
+      case -1:
+        cv::putText(output_c, "right_down", cv::Point(0, 30), 0.5, 1, cv::Scalar(0, 0, 0), 2, 8);
+        break;
+      case 0:
+        cv::putText(output_c, "right", cv::Point(0, 30), 0.5, 1, cv::Scalar(0, 0, 0), 2, 8);
+        break;
+      case 1:
+        cv::putText(output_c, "right_up", cv::Point(0, 30), 0.5, 1, cv::Scalar(0, 0, 0), 2, 8);
+        break;
+      case 2:
+        cv::putText(output_c, "up", cv::Point(0, 30), 0.5, 1, cv::Scalar(0, 0, 0), 2, 8);
+        break;
+      case 3:
+        cv::putText(output_c, "left_up", cv::Point(0, 30), 0.5, 1, cv::Scalar(0, 0, 0), 2, 8);
+        break;
+      case 4:
+        cv::putText(output_c, "left", cv::Point(0, 30), 0.5, 1, cv::Scalar(0, 0, 0), 2, 8);
+        break;
+    }
+    cv::rectangle(output_c, cv::Rect(640 - 200, 0, 640, 50), cv::Scalar(255, 255, 255), cv::FILLED, 8);
+    switch (direction_i)
+    {
+      case 1:
+        cv::putText(output_c, "CW", cv::Point(640 - 200, 30), 0.5, 1, cv::Scalar(0, 0, 0), 2, 8);
+        break;
+      case 0:
+        cv::putText(output_c, "CCW", cv::Point(640 - 200, 30), 0.5, 1, cv::Scalar(0, 0, 0), 2, 8);
+        break;
+    }
+    if (qr_flag == false)
+      img_result.publish(
+          cv_bridge::CvImage(std_msgs::Header(), sensor_msgs::image_encodings::BGR8, output_c).toImageMsg());
   }
+  circles.clear();
 }
 
 // 원 부부만 자르기 ->  c_find 미션인지 구별하는 코드
@@ -368,6 +444,8 @@ void MASTER::catch_c(cv::Point center, int two_radius)
 {
   int one_radius = 2.3 * two_radius;
   one_mat = output_c(Range(c[1] - one_radius, c[1] + one_radius), Range(c[0] - one_radius, c[0] + one_radius));
+  // cv::rectangle(output_c, cv::Point(c[0] - one_radius, c[1] - one_radius),
+  //               cv::Point(c[0] + one_radius, c[1] + one_radius), cv::Scalar(0, 255, 0), 2);
   cv::resize(one_mat, one_mat, cv::Size(300, 300), 0, 0, cv::INTER_CUBIC);
   cvtColor(one_mat, one_gray, cv::COLOR_BGR2GRAY);
   threshold(one_gray, one_binary, 80, 255, cv::THRESH_BINARY);
@@ -382,20 +460,12 @@ void MASTER::catch_c(cv::Point center, int two_radius)
   threshold(three_gray, three_binary, 80, 255, cv::THRESH_BINARY);
   three_binary = ~three_binary;
 
-  // int four_radius = 0.1667 * two_radius;
-  // four_mat = clone_mat(Range(c[1] - four_radius, c[1] + four_radius), Range(c[0] - four_radius, c[0] + four_radius));
-  // cv::resize(four_mat, four_mat, cv::Size(300, 300), 0, 0, cv::INTER_CUBIC);
-  // cvtColor(four_mat, four_gray, cv::COLOR_BGR2GRAY);
-  // threshold(four_gray, four_binary, 80, 255, cv::THRESH_BINARY);
-  // four_binary = ~four_binary;
+  if (find_one)
+  {
+    detect_way();
 
-  // int five_radius = 0.05 * two_radius;
-  // five_mat =
-  //     clone_mat(Range(c[1] - five_radius, c[1] + five_radius), Range(c[0] - five_radius, c[0] + five_radius));
-  // cv::resize(five_mat, five_mat, cv::Size(300, 300), 0, 0, cv::INTER_CUBIC);
-  // cvtColor(five_mat, five_gray, cv::COLOR_BGR2GRAY);
-  // threshold(five_gray, five_binary, 80, 255, cv::THRESH_BINARY);
-  // five_binary = ~five_binary;
+    find_one = false;
+  }
 }
 
 void MASTER::detect_way()
@@ -595,154 +665,6 @@ void MASTER::detect_way()
 
   // cout << "3: " << averageAngle3 << endl;
   // cout << endl;
-
-  /* -----------------------------------------------------------------------------------*/
-
-  // namespace rescue_vision_cfind
-  //-------------------------------------------------------three----------------------------------------------------
-  // // (badly handpicked coords):
-  // cv::Point cen3(150 + radius3 * cos(averageAngle3 / 180.0 * PI), 150 + radius3 * sin(-averageAngle3 / 180.0 *
-  // PI)); int radius_roi3 = 5;
-  // // out << "(" << cen2.x << "," << cen2.y << ")" << endl;
-  // // get the Rect containing the circle:
-  // cv::Rect r3(cen3.x - radius_roi3, cen3.y - radius_roi3, radius_roi3 * 2, radius_roi3 * 2);
-
-  // // obtain the image ROI:
-  // cv::Mat roi3(three_binary, r3);
-
-  // // make a black mask, same size:
-  // cv::Mat mask3(roi3.size(), roi3.type(), Scalar::all(0));
-  // // with a white, filled circle in it:
-  // cv::circle(mask3, Point(radius_roi3, radius_roi3), radius_roi3, Scalar::all(255), -1);
-
-  // // combine roi & mask:
-  // Mat eye_cropped3 = roi3 & mask3;
-  // Scalar aver3 = mean(eye_cropped3);
-  // // roi_img.publish(cv_bridge::CvImage(std_msgs::Header(), sensor_msgs::image_encodings::MONO8,
-  // // eye_cropped).toImageMsg());
-  // // if (aver2[0] < 5 || 200 < aver2[0])
-  // // {
-  // //   return;
-  // // }
-  // // cout << aver2[0] << endl;
-
-  //--------------------------------------------------fourth circle
-  // check-----------------------------------------------
-  // double sumAngles4 = 0.0;
-  // int count4 = 0;
-  // int radius4 = 125;  // 원의 반지름
-  // double temp_radian4 = 0; double angleRadians4 = 0;
-
-  // for (int y = 0; y < four_binary.rows; y++)
-  // {
-  //   for (int x = 0; x < four_binary.cols; x++)
-  //   {
-  //     if (four_binary.at<uchar>(y, x) == 0)
-  //     {
-  //       // 중심 좌표로부터의 거리 계산
-  //       double distance4 = std::sqrt(std::pow(x - 150, 2) + std::pow(y - 150, 2));
-  //       if (std::abs(distance4 - radius4) < 1.0)  // 거리가 125인 지점 판단
-  //       {
-  //         angleRadians4 = std::atan2(y - 150, x - 150) * 180.0 / CV_PI;
-  //         if (abs(sumAngles4 / count4 - angleRadians4) > 180)
-  //         {
-  //           angleRadians4 -= 360;
-  //         }
-  //         sumAngles4 += angleRadians4;
-  //         count4++;
-  //       }
-  //     }
-  //   }
-  //   if (abs(temp_radian4 - angleRadians4) > 180)
-  //     break;
-  // }
-
-  // double averageAngle4 = 0;
-  // if (count4 > 0)
-  // {
-  //   averageAngle4 = -(sumAngles4 / count4);
-  //   if (averageAngle4 > 180)
-  //   {
-  //     averageAngle4 -= 360;
-  //   }
-  //   else if (averageAngle4 < -180)
-  //   {
-  //     averageAngle4 += 360;
-  //   }
-  // }
-
-  // cout << "4: " << averageAngle4 << endl;
-
-  //-------------------------------------------------------four----------------------------------------------------
-  // // (badly handpicked coords):
-  // cv::Point cen4(150 + radius4 * cos(averageAngle4 / 180.0 * PI), 150 + radius4 * sin(-averageAngle4 / 180.0 *
-  // PI)); int radius_roi4 = 5;
-  // // out << "(" << cen2.x << "," << cen2.y << ")" << endl;
-  // // get the Rect containing the circle:
-  // cv::Rect r4(cen4.x - radius_roi4, cen4.y - radius_roi4, radius_roi4 * 2, radius_roi4 * 2);
-
-  // // obtain the image ROI:
-  // cv::Mat roi4(four_binary, r4);
-
-  // // make a black mask, same size:
-  // cv::Mat mask4(roi4.size(), roi4.type(), Scalar::all(0));
-  // // with a white, filled circle in it:
-  // cv::circle(mask4, Point(radius_roi4, radius_roi4), radius_roi4, Scalar::all(255), -1);
-
-  // // combine roi & mask:
-  // Mat eye_cropped4 = roi4 & mask4;
-  // Scalar aver4 = mean(eye_cropped4);
-  // // roi_img.publish(cv_bridge::CvImage(std_msgs::Header(), sensor_msgs::image_encodings::MONO8,
-  // // eye_cropped).toImageMsg());
-  // // if (aver2[0] < 5 || 200 < aver2[0])
-  // // {
-  // //   return;
-  // // }
-  // // cout << aver2[0] << endl;
-
-  // //--------------------------------------------------fifth circle
-  // check----------------------------------------------- double sumAngles5 = 0.0; int count5 = 0; int radius5 = 125;
-  // //원의 반지름 double temp_radian5 = 0; double angleRadians5 = 0;
-
-  // for (int y = 0; y < five_binary.rows; y++)
-  // {
-  //   for (int x = 0; x < five_binary.cols; x++)
-  //   {
-  //     if (five_binary.at<uchar>(y, x) == 0)
-  //     {
-  //       // 중심 좌표로부터의 거리 계산
-  //       double distance5 = std::sqrt(std::pow(x - 150, 2) + std::pow(y - 150, 2));
-  //       if (std::abs(distance5 - radius5) < 1.0)  // 거리가 125인 지점 판단
-  //       {
-  //         angleRadians5 = std::atan2(y - 150, x - 150) * 180.0 / CV_PI;
-  //         if (abs(sumAngles5 / count5 - angleRadians5) > 180)
-  //         {
-  //           angleRadians5 -= 360;
-  //         }
-  //         sumAngles5 += angleRadians5;
-  //         count5++;
-  //       }
-  //     }
-  //   }
-  //   if (abs(temp_radian5 - angleRadians5) > 180)
-  //     break;
-  // }
-
-  // double averageAngle5 = 0;
-  // if (count5 > 0)
-  // {
-  //   averageAngle5 = -(sumAngles5 / count5);
-  //   if (averageAngle5 > 180)
-  //   {
-  //     averageAngle5 -= 360;
-  //   }
-  //   else if (averageAngle5 < -180)
-  //   {
-  //     averageAngle5 += 360;
-  //   }
-  // }
-
-  // cout << "5: " << averageAngle5 << endl;
 }
 
 void MASTER::check_moving(double averageAngle1)
@@ -772,10 +694,6 @@ void MASTER::check_moving(double averageAngle1)
   if (movement_count == 30)
   {
     result_maxAngle = maxFrequencyAngle;
-    msg1.data = result_maxAngle;
-    if (qr_flag == false)
-      c_result1_pub.publish(msg1);
-
     first_i = averageAngle_i;
     if (first_i == 4 || first_i == -3 || first_i == maxFrequencyAngle)
     {
@@ -795,24 +713,17 @@ void MASTER::check_moving(double averageAngle1)
     else
     {
       cout << last_i << endl;
-
       direction = first_i - last_i;
       // cout << direction << endl;
       if (direction > 0)
       {
         direction_i = 1;
-        msg2.data = direction_i;
-        if (qr_flag == false)
-          c_result2_pub.publish(msg2);
         c_flag = true;
       }
 
       else if (direction < 0)
       {
         direction_i = 0;
-        msg2.data = direction_i;
-        if (qr_flag == false)
-          c_result2_pub.publish(msg2);
         c_flag = true;
       }
       else if (direction == 0)

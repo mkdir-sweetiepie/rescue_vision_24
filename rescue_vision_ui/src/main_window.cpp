@@ -36,7 +36,10 @@ MainWindow::MainWindow(int argc, char** argv, QWidget* parent) : QMainWindow(par
 
   QObject::connect(&qnode, SIGNAL(rosShutdown()), this, SLOT(close()));
 
-  QObject::connect(&qnode, SIGNAL(recvImg_qr()), this, SLOT(update_qr()));
+  QObject::connect(&qnode, SIGNAL(recvImg()), this, SLOT(update()));
+  QObject::connect(&qnode, SIGNAL(recvImg_thermal()), this, SLOT(update_thermal()));
+
+  QObject::connect(ui.b, SIGNAL(clicked()), this, SLOT(button()));
 }
 
 MainWindow::~MainWindow()
@@ -47,59 +50,32 @@ MainWindow::~MainWindow()
 ** Functions
 *****************************************************************************/
 
-void MainWindow::update_qr()
+void MainWindow::update()
 {
-  cv::Mat qr_clone_mat = qnode.qr_qnode->clone();
-
-  if (qnode.isRecv_msg1)
-  {
-    cv::rectangle(qr_clone_mat, cv::Rect(0, 0, 200, 50), cv::Scalar(255, 255, 255), cv::FILLED, 8);
-    switch (qnode.result_maxAngle)
-    {
-      case -3:
-        cv::putText(qr_clone_mat, "left_down", cv::Point(0, 30), 0.5, 1, cv::Scalar(0, 0, 0), 2, 8);
-        break;
-      case -2:
-        cv::putText(qr_clone_mat, "down", cv::Point(0, 30), 0.5, 1, cv::Scalar(0, 0, 0), 2, 8);
-        break;
-      case -1:
-        cv::putText(qr_clone_mat, "right_down", cv::Point(0, 30), 0.5, 1, cv::Scalar(0, 0, 0), 2, 8);
-        break;
-      case 0:
-        cv::putText(qr_clone_mat, "right", cv::Point(0, 30), 0.5, 1, cv::Scalar(0, 0, 0), 2, 8);
-        break;
-      case 1:
-        cv::putText(qr_clone_mat, "right_up", cv::Point(0, 30), 0.5, 1, cv::Scalar(0, 0, 0), 2, 8);
-        break;
-      case 2:
-        cv::putText(qr_clone_mat, "up", cv::Point(0, 30), 0.5, 1, cv::Scalar(0, 0, 0), 2, 8);
-        break;
-      case 3:
-        cv::putText(qr_clone_mat, "left_up", cv::Point(0, 30), 0.5, 1, cv::Scalar(0, 0, 0), 2, 8);
-        break;
-      case 4:
-        cv::putText(qr_clone_mat, "left", cv::Point(0, 30), 0.5, 1, cv::Scalar(0, 0, 0), 2, 8);
-        break;
-    }
-  }
-  if (qnode.isRecv_msg2)
-  {
-    cv::rectangle(qr_clone_mat, cv::Rect(640 - 200, 0, 640, 50), cv::Scalar(255, 255, 255), cv::FILLED, 8);
-    switch (qnode.direction_i)
-    {
-      case 1:
-        cv::putText(qr_clone_mat, "CW", cv::Point(640 - 200, 30), 0.5, 1, cv::Scalar(0, 0, 0), 2, 8);
-        break;
-      case 0:
-        cv::putText(qr_clone_mat, "CCW", cv::Point(640 - 200, 30), 0.5, 1, cv::Scalar(0, 0, 0), 2, 8);
-        break;
-    }
-  }
+  cv::Mat qr_clone_mat = qnode.original->clone();
 
   ui.label->setPixmap(QPixmap::fromImage(
       QImage((const unsigned char*)(qr_clone_mat.data), qr_clone_mat.cols, qr_clone_mat.rows, QImage::Format_RGB888)));
-  delete qnode.qr_qnode;
-  qnode.isRecv_qr = false;
+  delete qnode.original;
+  qnode.isRecv = false;
 }
 
+void MainWindow::update_thermal()
+{
+  cv::Mat qr_thermal_clone_mat = qnode.original_thermal->clone();
+  ui.label_2->setPixmap(
+      QPixmap::fromImage(QImage((const unsigned char*)(qr_thermal_clone_mat.data), qr_thermal_clone_mat.cols,
+                                qr_thermal_clone_mat.rows, QImage::Format_RGB888)));
+  delete qnode.original_thermal;
+  qnode.isRecv_thermal = false;
+}
+
+void MainWindow::button()
+{
+  if (start_flag == 0)
+    start_flag = 1;
+  std_msgs::Int32 msg;
+  msg.data = start_flag;
+  qnode.victim_start.publish(msg);
+}
 }  // namespace rescue_vision_ui

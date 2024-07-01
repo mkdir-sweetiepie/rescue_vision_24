@@ -47,29 +47,26 @@ public:
   bool init();
   void run();
 
-  cv::Mat* qr_qnode = NULL;
-  bool isRecv_qr = false;
-  bool isRecv_msg1 = false;
-  bool isRecv_msg2 = false;
-  int result_maxAngle;
-  int direction_i;
-  void result1_Callback(const std_msgs::Int32::ConstPtr& msg1);
-  void result2_Callback(const std_msgs::Int32::ConstPtr& msg2);
-
+  cv::Mat* original = NULL;
+  cv::Mat* original_thermal = NULL;
+  bool isRecv = false;
+  bool isRecv_thermal = false;
+  ros::Publisher victim_start;
 Q_SIGNALS:
   void rosShutdown();
 
-  void recvImg_qr();
-  
+  void recvImg();
+  void recvImg_thermal();
 
 private:
   int init_argc;
   char** init_argv;
 
-  image_transport::Subscriber qr_sub;
-  ros::Subscriber c_result1_sub;
-  ros::Subscriber c_result2_sub;
-  void qr_Callback(const sensor_msgs::ImageConstPtr& msg_img);
+  image_transport::Subscriber image_sub;
+  image_transport::Subscriber thermal_sub;
+
+  void victim_Callback(const sensor_msgs::ImageConstPtr& msg_img);
+  void thermal_Callback(const sensor_msgs::ImageConstPtr& msg_img);
 };
 
 }  // namespace rescue_vision_ui

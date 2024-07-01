@@ -35,9 +35,12 @@ class MainWindow : public QMainWindow
 public:
   MainWindow(int argc, char** argv, QWidget* parent = 0);
   ~MainWindow();
+  int start_flag = 0;
 
 public Q_SLOTS:
-  void update_qr();
+  void update();
+  void update_thermal();
+  void button();
 
 private:
   Ui::MainWindowDesign ui;

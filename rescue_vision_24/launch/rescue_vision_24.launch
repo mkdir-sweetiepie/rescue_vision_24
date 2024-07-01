@@ -18,7 +18,9 @@ default="/usb_cam/image_raw"
         <include file="$(find usb_cam)/launch/usb_cam-test.launch" >
         </include>
     </group>
-
+    
+    <include file="$(find seekthermal_ros)/launch/seekthermal_ros.launch" />
+  
     <node pkg="rescue_vision_24" type="master" name="master" output="screen">
         <param name="camera" type="string" value="$(arg camera)"/>
     </node>     

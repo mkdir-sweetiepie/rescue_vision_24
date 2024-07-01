@@ -7,8 +7,8 @@
      description
 
   </description>
-  <maintainer email="author@mail.com">author</maintainer>
-  <author>author</author>
+  <maintainer email="hong091788@naver.com">hyeon</maintainer>
+  <author>hyeon</author>
   <license>BSD</license>
   <buildtool_depend>catkin</buildtool_depend>
   <build_depend>qt_build</build_depend>

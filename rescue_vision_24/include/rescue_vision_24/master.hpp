@@ -7,6 +7,7 @@
 #include <iostream>
 #include <vector>
 #include "std_msgs/String.h"
+#include "std_msgs/Int32.h"
 #include <opencv2/opencv.hpp>
 
 #include <opencv2/dnn.hpp>
@@ -26,29 +27,36 @@ public:
 
   bool init();
   void run();
-  void update();
-  bool isRecv;
 
+  // 이미지 정보 ================================================
   Mat* original;
+  Mat* original_thermal;
   Mat clone_mat;
+  Mat thermal_mat;
   Mat gray_clone;
+  bool isRecv;
+  bool isRecv_thermal;
+  void update();
+  void set_thermal();
 
+  // hazmat 정보 ================================================
   Mat frame;
-  ;  // hazmat
   Mat blob;
   cv::dnn::Net net;
   std::vector<std::string> class_names;
   bool isOverlapping;  // 겹침 여부 플래그
   bool isRectOverlapping(const cv::Rect& rect1, const cv::Rect& rect2);
   void set_hazmat();
-  //================================================
 
+  // qr 정보 ================================================
   Mat output_qr;  // qr
   vector<Point> points;
+  vector<cv::Rect> qr_boxes;
+  String info;
   QRCodeDetector detector;
   void set_qr();
-  //================================================
 
+  // c 정보 ================================================
   bool exist_moving = false;  // c
 
   Mat output_c;
@@ -70,14 +78,6 @@ public:
   Mat three_gray;
   Mat three_binary;
 
-  Mat four_mat;
-  Mat four_gray;
-  Mat four_binary;
-
-  Mat five_mat;
-  Mat five_gray;
-  Mat five_binary;
-
   int averageAngle_i;
   int movement_count = 0;
   int previous_value = 0;
@@ -98,12 +98,13 @@ public:
   void check_moving(double averageAngle1);
   void set_c();
   //========================================
-  bool victim_start = true;
+  bool victim_start = false;
   bool qr_flag = false;
   bool c_flag = false;
 
-  std::string param;
-  String info;
+  // cam 정보 (1)realsense (2)usbcam ========================
+  std::string cam1_topic_name;
+  std::string cam2_topic_name;
 
   std_msgs::Int32 msg1, msg2;
 
@@ -111,11 +112,15 @@ private:
   int init_argc;
   char** init_argv;
 
-  image_transport::Subscriber img_sub;
   image_transport::Publisher img_result;
-  ros::Publisher c_result1_pub;
-  ros::Publisher c_result2_pub;
+  image_transport::Publisher img_result_thermal;
+
+  image_transport::Subscriber img_sub;
+  image_transport::Subscriber img_sub_thermal;
+  ros::Subscriber victim_start_sub;
   void imageCallBack(const sensor_msgs::ImageConstPtr& msg_img);
+  void imageCallBack_thermal(const sensor_msgs::ImageConstPtr& msg_img);
+  void start_CallBack(const std_msgs::Int32ConstPtr& msg_img);
 };
 
 }  // namespace vision_rescue_24

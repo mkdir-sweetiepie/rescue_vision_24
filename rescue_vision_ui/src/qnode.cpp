@@ -54,9 +54,9 @@ bool QNode::init()
   // Add your ros communications here.
 
   image_transport::ImageTransport image(n);
-  qr_sub = image.subscribe("/qr_image", 1, &QNode::qr_Callback, this);
-  c_result1_sub = n.subscribe("/c_result1", 10, &QNode::result1_Callback, this);
-  c_result2_sub = n.subscribe("/c_result2", 10, &QNode::result2_Callback, this);
+  image_sub = image.subscribe("/victim_image", 1, &QNode::victim_Callback, this);
+  thermal_sub = image.subscribe("/img_result_thermal", 1, &QNode::thermal_Callback, this);
+  victim_start = n.advertise<std_msgs::Int32>("/victim_start", 1);
   start();
   return true;
 }
@@ -73,30 +73,34 @@ void QNode::run()
   Q_EMIT rosShutdown();  // used to signal the gui for a shutdown (useful to roslaunch)
 }
 
-void QNode::qr_Callback(const sensor_msgs::ImageConstPtr& msg_img)
+void QNode::victim_Callback(const sensor_msgs::ImageConstPtr& msg_img)
 {
-  if (!isRecv_qr)  // imgRaw -> NULL, isreceived -> false
+  if (!isRecv)  // imgRaw -> NULL, isreceived -> false
   {
     // ROS 이미지 메시지를 OpenCV Mat 형식으로 변환, 이미지 객체에 할당
-    qr_qnode = new cv::Mat(cv_bridge::toCvCopy(msg_img, sensor_msgs::image_encodings::RGB8)->image);
+    original = new cv::Mat(cv_bridge::toCvCopy(msg_img, sensor_msgs::image_encodings::RGB8)->image);
 
-    if (qr_qnode != NULL)  // imgRaw 변환 성공
+    if (original != NULL)  // imgRaw 변환 성공
     {
-      isRecv_qr = true;
-      Q_EMIT recvImg_qr();  // 이미지 수신을 알리는 시그널 발생
+      isRecv = true;
+      Q_EMIT recvImg();  // 이미지 수신을 알리는 시그널 발생
     }
   }
 }
 
-void QNode::result1_Callback(const std_msgs::Int32::ConstPtr& msg1)
+void QNode::thermal_Callback(const sensor_msgs::ImageConstPtr& msg_img)
 {
-  result_maxAngle = msg1->data;
-  isRecv_msg1 = true;
-}
-void QNode::result2_Callback(const std_msgs::Int32::ConstPtr& msg2)
-{
-  direction_i = msg2->data;
-  isRecv_msg2 = true;
+  if (!isRecv_thermal)  // imgRaw -> NULL, isreceived -> false
+  {
+    // ROS 이미지 메시지를 OpenCV Mat 형식으로 변환, 이미지 객체에 할당
+    original_thermal = new cv::Mat(cv_bridge::toCvCopy(msg_img, sensor_msgs::image_encodings::RGB8)->image);
+
+    if (original != NULL)  // imgRaw 변환 성공
+    {
+      isRecv_thermal = true;
+      Q_EMIT recvImg_thermal();  // 이미지 수신을 알리는 시그널 발생
+    }
+  }
 }
 
 }  // namespace rescue_vision_ui
