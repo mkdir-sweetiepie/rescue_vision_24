@@ -158,7 +158,117 @@ void MASTER::update()
 {
   clone_mat = original->clone();
   cv::resize(clone_mat, clone_mat, cv::Size(640, 480), 0, 0, cv::INTER_CUBIC);
-
+  cv::rectangle(clone_mat, cv::Rect(0, 0, 150, 50), cv::Scalar(255, 255, 255), cv::FILLED, 8);
+  cv::rectangle(clone_mat, cv::Rect(0, 51, 150, 50), cv::Scalar(255, 255, 255), cv::FILLED, 8);
+  cv::rectangle(clone_mat, cv::Rect(0, 101, 150, 50), cv::Scalar(255, 255, 255), cv::FILLED, 8);
+  cv::rectangle(clone_mat, cv::Rect(640 - 200, 0, 640, 50), cv::Scalar(255, 255, 255), cv::FILLED, 8);
+  switch (result_maxAngle1)
+  {
+    case -4:
+      cv::putText(clone_mat, "left", cv::Point(0, 30), 0.5, 1, cv::Scalar(0, 0, 0), 2, 8);
+      break;
+    case -3:
+      cv::putText(clone_mat, "left_down", cv::Point(0, 30), 0.5, 1, cv::Scalar(0, 0, 0), 2, 8);
+      break;
+    case -2:
+      cv::putText(clone_mat, "down", cv::Point(0, 30), 0.5, 1, cv::Scalar(0, 0, 0), 2, 8);
+      break;
+    case -1:
+      cv::putText(clone_mat, "right_down", cv::Point(0, 30), 0.5, 1, cv::Scalar(0, 0, 0), 2, 8);
+      break;
+    case 0:
+      cv::putText(clone_mat, "right", cv::Point(0, 30), 0.5, 1, cv::Scalar(0, 0, 0), 2, 8);
+      break;
+    case 1:
+      cv::putText(clone_mat, "right_up", cv::Point(0, 30), 0.5, 1, cv::Scalar(0, 0, 0), 2, 8);
+      break;
+    case 2:
+      cv::putText(clone_mat, "up", cv::Point(0, 30), 0.5, 1, cv::Scalar(0, 0, 0), 2, 8);
+      break;
+    case 3:
+      cv::putText(clone_mat, "left_up", cv::Point(0, 30), 0.5, 1, cv::Scalar(0, 0, 0), 2, 8);
+      break;
+    case 4:
+      cv::putText(clone_mat, "left", cv::Point(0, 30), 0.5, 1, cv::Scalar(0, 0, 0), 2, 8);
+      break;
+    default:
+      break;
+  }
+  switch (result_maxAngle2)
+  {
+    case -4:
+      cv::putText(clone_mat, "left", cv::Point(0, 81), 0.5, 1, cv::Scalar(0, 0, 0), 2, 8);
+      break;
+    case -3:
+      cv::putText(clone_mat, "left_down", cv::Point(0, 81), 0.5, 1, cv::Scalar(0, 0, 0), 2, 8);
+      break;
+    case -2:
+      cv::putText(clone_mat, "down", cv::Point(0, 81), 0.5, 1, cv::Scalar(0, 0, 0), 2, 8);
+      break;
+    case -1:
+      cv::putText(clone_mat, "right_down", cv::Point(0, 81), 0.5, 1, cv::Scalar(0, 0, 0), 2, 8);
+      break;
+    case 0:
+      cv::putText(clone_mat, "right", cv::Point(0, 81), 0.5, 1, cv::Scalar(0, 0, 0), 2, 8);
+      break;
+    case 1:
+      cv::putText(clone_mat, "right_up", cv::Point(0, 81), 0.5, 1, cv::Scalar(0, 0, 0), 2, 8);
+      break;
+    case 2:
+      cv::putText(clone_mat, "up", cv::Point(0, 81), 0.5, 1, cv::Scalar(0, 0, 0), 2, 8);
+      break;
+    case 3:
+      cv::putText(clone_mat, "left_up", cv::Point(0, 81), 0.5, 1, cv::Scalar(0, 0, 0), 2, 8);
+      break;
+    case 4:
+      cv::putText(clone_mat, "left", cv::Point(0, 81), 0.5, 1, cv::Scalar(0, 0, 0), 2, 8);
+      break;
+    default:
+      break;
+  }
+  switch (result_maxAngle3)
+  {
+    case -4:
+      cv::putText(clone_mat, "left", cv::Point(0, 131), 0.5, 1, cv::Scalar(0, 0, 0), 2, 8);
+      break;
+    case -3:
+      cv::putText(clone_mat, "left_down", cv::Point(0, 131), 0.5, 1, cv::Scalar(0, 0, 0), 2, 8);
+      break;
+    case -2:
+      cv::putText(clone_mat, "down", cv::Point(0, 131), 0.5, 1, cv::Scalar(0, 0, 0), 2, 8);
+      break;
+    case -1:
+      cv::putText(clone_mat, "right_down", cv::Point(0, 131), 0.5, 1, cv::Scalar(0, 0, 0), 2, 8);
+      break;
+    case 0:
+      cv::putText(clone_mat, "right", cv::Point(0, 131), 0.5, 1, cv::Scalar(0, 0, 0), 2, 8);
+      break;
+    case 1:
+      cv::putText(clone_mat, "right_up", cv::Point(0, 131), 0.5, 1, cv::Scalar(0, 0, 0), 2, 8);
+      break;
+    case 2:
+      cv::putText(clone_mat, "up", cv::Point(0, 131), 0.5, 1, cv::Scalar(0, 0, 0), 2, 8);
+      break;
+    case 3:
+      cv::putText(clone_mat, "left_up", cv::Point(0, 131), 0.5, 1, cv::Scalar(0, 0, 0), 2, 8);
+      break;
+    case 4:
+      cv::putText(clone_mat, "left", cv::Point(0, 131), 0.5, 1, cv::Scalar(0, 0, 0), 2, 8);
+      break;
+    default:
+      break;
+  }
+  switch (direction_i)
+  {
+    case 1:
+      cv::putText(clone_mat, "CW", cv::Point(640 - 200, 30), 0.5, 1, cv::Scalar(0, 0, 0), 2, 8);
+      break;
+    case 0:
+      cv::putText(clone_mat, "CCW", cv::Point(640 - 200, 30), 0.5, 1, cv::Scalar(0, 0, 0), 2, 8);
+      break;
+    default:
+      break;
+  }
   if (victim_start == true)
   {
     set_qr();
@@ -172,11 +282,11 @@ void MASTER::update()
 void MASTER::set_hazmat()
 {
   auto output_names = net.getUnconnectedOutLayersNames();
-  frame = clone_mat.clone();
+  clone_mat = clone_mat.clone();
   std::vector<cv::Mat> detections;
 
   auto total_start = std::chrono::steady_clock::now();
-  cv::dnn::blobFromImage(frame, blob, 0.00392, cv::Size(416, 416), cv::Scalar(), true, false, CV_32F);
+  cv::dnn::blobFromImage(clone_mat, blob, 0.00392, cv::Size(416, 416), cv::Scalar(), true, false, CV_32F);
   net.setInput(blob);
 
   auto dnn_start = std::chrono::steady_clock::now();
@@ -192,10 +302,10 @@ void MASTER::set_hazmat()
     const auto num_boxes = output.rows;
     for (int i = 0; i < num_boxes; i++)
     {
-      auto x = output.at<float>(i, 0) * frame.cols;  // 중심 x
-      auto y = output.at<float>(i, 1) * frame.rows;  // 중심 y
-      auto width = output.at<float>(i, 2) * frame.cols;
-      auto height = output.at<float>(i, 3) * frame.rows;
+      auto x = output.at<float>(i, 0) * clone_mat.cols;  // 중심 x
+      auto y = output.at<float>(i, 1) * clone_mat.rows;  // 중심 y
+      auto width = output.at<float>(i, 2) * clone_mat.cols;
+      auto height = output.at<float>(i, 3) * clone_mat.rows;
       cv::Rect rect(x - width / 2, y - height / 2, width, height);
 
       for (int c = 0; c < NUM_CLASSES; c++)
@@ -258,7 +368,8 @@ void MASTER::set_hazmat()
 
       if (!isOverlapping)
       {
-        cv::rectangle(frame, cv::Point(rect.x, rect.y), cv::Point(rect.x + rect.width, rect.y + rect.height), color, 3);
+        cv::rectangle(clone_mat, cv::Point(rect.x, rect.y), cv::Point(rect.x + rect.width, rect.y + rect.height), color,
+                      3);
 
         std::ostringstream label_ss;
         label_ss << class_names[c] << ": " << std::fixed << std::setprecision(2) << scores[c][idx];
@@ -268,9 +379,9 @@ void MASTER::set_hazmat()
         auto label_bg_sz = cv::getTextSize(label.c_str(), cv::FONT_HERSHEY_COMPLEX_SMALL, 1, 1, &baseline);
 
         int label_x = rect.x;
-        if (label_x + label_bg_sz.width > frame.cols)
+        if (label_x + label_bg_sz.width > clone_mat.cols)
         {
-          label_x = frame.cols - label_bg_sz.width - 10;
+          label_x = clone_mat.cols - label_bg_sz.width - 10;
         }
         if (label_x < 0)
         {
@@ -279,25 +390,26 @@ void MASTER::set_hazmat()
 
         if ((rect.y - label_bg_sz.height - baseline - 10) >= 0)
         {
-          cv::rectangle(frame, cv::Point(label_x, rect.y - label_bg_sz.height - baseline - 10),
+          cv::rectangle(clone_mat, cv::Point(label_x, rect.y - label_bg_sz.height - baseline - 10),
                         cv::Point(label_x + label_bg_sz.width, rect.y), cv::Scalar(255, 255, 255), cv::FILLED);
-          cv::putText(frame, label.c_str(), cv::Point(label_x, rect.y - baseline - 5), cv::FONT_HERSHEY_COMPLEX_SMALL,
-                      1, cv::Scalar(0, 0, 0));
+          cv::putText(clone_mat, label.c_str(), cv::Point(label_x, rect.y - baseline - 5),
+                      cv::FONT_HERSHEY_COMPLEX_SMALL, 1, cv::Scalar(0, 0, 0));
         }
         else
         {
           cv::rectangle(
-              frame, cv::Point(label_x, rect.y + rect.height),
+              clone_mat, cv::Point(label_x, rect.y + rect.height),
               cv::Point(label_x + label_bg_sz.width, rect.y + rect.height + label_bg_sz.height + baseline + 10),
               cv::Scalar(255, 255, 255), cv::FILLED);
-          cv::putText(frame, label.c_str(), cv::Point(label_x, rect.y + rect.height + baseline + 5),
+          cv::putText(clone_mat, label.c_str(), cv::Point(label_x, rect.y + rect.height + baseline + 5),
                       cv::FONT_HERSHEY_COMPLEX_SMALL, 1, cv::Scalar(0, 0, 0));
         }
+        if (qr_flag == false)
+          img_result.publish(
+              cv_bridge::CvImage(std_msgs::Header(), sensor_msgs::image_encodings::BGR8, clone_mat).toImageMsg());
       }
     }
   }
-  if (qr_flag == false)
-    img_result.publish(cv_bridge::CvImage(std_msgs::Header(), sensor_msgs::image_encodings::BGR8, frame).toImageMsg());
 }
 
 bool MASTER::isRectOverlapping(const cv::Rect& rect1, const cv::Rect& rect2)
@@ -383,44 +495,7 @@ void MASTER::set_c()
         // cv::circle(clone_mat, center, 1, cv::Scalar(255, 0, 0), 1);           // 중심원
       }
     }
-    cv::rectangle(output_c, cv::Rect(0, 0, 200, 50), cv::Scalar(255, 255, 255), cv::FILLED, 8);
-    switch (result_maxAngle)
-    {
-      case -3:
-        cv::putText(output_c, "left_down", cv::Point(0, 30), 0.5, 1, cv::Scalar(0, 0, 0), 2, 8);
-        break;
-      case -2:
-        cv::putText(output_c, "down", cv::Point(0, 30), 0.5, 1, cv::Scalar(0, 0, 0), 2, 8);
-        break;
-      case -1:
-        cv::putText(output_c, "right_down", cv::Point(0, 30), 0.5, 1, cv::Scalar(0, 0, 0), 2, 8);
-        break;
-      case 0:
-        cv::putText(output_c, "right", cv::Point(0, 30), 0.5, 1, cv::Scalar(0, 0, 0), 2, 8);
-        break;
-      case 1:
-        cv::putText(output_c, "right_up", cv::Point(0, 30), 0.5, 1, cv::Scalar(0, 0, 0), 2, 8);
-        break;
-      case 2:
-        cv::putText(output_c, "up", cv::Point(0, 30), 0.5, 1, cv::Scalar(0, 0, 0), 2, 8);
-        break;
-      case 3:
-        cv::putText(output_c, "left_up", cv::Point(0, 30), 0.5, 1, cv::Scalar(0, 0, 0), 2, 8);
-        break;
-      case 4:
-        cv::putText(output_c, "left", cv::Point(0, 30), 0.5, 1, cv::Scalar(0, 0, 0), 2, 8);
-        break;
-    }
-    cv::rectangle(output_c, cv::Rect(640 - 200, 0, 640, 50), cv::Scalar(255, 255, 255), cv::FILLED, 8);
-    switch (direction_i)
-    {
-      case 1:
-        cv::putText(output_c, "CW", cv::Point(640 - 200, 30), 0.5, 1, cv::Scalar(0, 0, 0), 2, 8);
-        break;
-      case 0:
-        cv::putText(output_c, "CCW", cv::Point(640 - 200, 30), 0.5, 1, cv::Scalar(0, 0, 0), 2, 8);
-        break;
-    }
+
     if (qr_flag == false)
       img_result.publish(
           cv_bridge::CvImage(std_msgs::Header(), sensor_msgs::image_encodings::BGR8, output_c).toImageMsg());
@@ -662,40 +737,63 @@ void MASTER::detect_way()
       averageAngle3 += 360;
     }
   }
-
-  // cout << "3: " << averageAngle3 << endl;
-  // cout << endl;
-}
-
-void MASTER::check_moving(double averageAngle1)
-{
   int averageAngle1_i = averageAngle1;
-  averageAngle_i = (averageAngle1_i + 22.5 * ((averageAngle1_i > 0) ? 1 : -1)) / 45.0;
-  if (averageAngle_i == -4)
-    averageAngle_i = 4;
+  int averageAngle2_i = averageAngle2;
+  int averageAngle3_i = averageAngle3;
+  // averageAngle1_i = (90 - averageAngle2) + averageAngle1;
+  // if (averageAngle1_i > 180)
+  //   averageAngle1_i -= 360;
+  // averageAngle2_i = (90 - averageAngle3) + averageAngle1;
+  // if (averageAngle2_i > 180)
+  //   averageAngle2_i -= 360;
+
+  averageAngle_1 = (averageAngle1_i + 22.5 * ((averageAngle1_i > 0) ? 1 : -1)) / 45.0;
+  averageAngle_2 = (averageAngle2_i + 22.5 * ((averageAngle2_i > 0) ? 1 : -1)) / 45.0;
+  averageAngle_3 = (averageAngle3_i + 22.5 * ((averageAngle3_i > 0) ? 1 : -1)) / 45.0;
+
+  if (averageAngle_1 == -4)
+    averageAngle_1 = 4;
+  if (averageAngle_2 == -4)
+    averageAngle_2 = 4;
+  if (averageAngle_3 == -4)
+    averageAngle_3 = 4;
 
   // 키면 거의 바로 인식해서 세리는 스타트 플래그 필요함
 
-  if (movement_count <= 31)
+  if (movement_count <= 21)
     movement_count += 1;
 
-  if (movement_count < 30)
+  if (movement_count < 20)
   {
-    angleFrequency[averageAngle_i]++;
-    if (angleFrequency[averageAngle_i] > maxFrequency)
+    angleFrequency1[averageAngle_1]++;
+    if (angleFrequency1[averageAngle_1] > maxFrequency1)
     {
-      maxFrequency = angleFrequency[averageAngle_i];
-      maxFrequencyAngle = averageAngle_i;
+      maxFrequency1 = angleFrequency1[averageAngle_1];
+      maxFrequencyAngle1 = averageAngle_1;
+    }
+    angleFrequency2[averageAngle_2]++;
+    if (angleFrequency2[averageAngle_2] > maxFrequency2)
+    {
+      maxFrequency2 = angleFrequency2[averageAngle_2];
+      maxFrequencyAngle2 = averageAngle_2;
+    }
+    angleFrequency3[averageAngle_3]++;
+    if (angleFrequency3[averageAngle_3] > maxFrequency3)
+    {
+      maxFrequency3 = angleFrequency3[averageAngle_3];
+      maxFrequencyAngle3 = averageAngle_3;
     }
   }
   cout << movement_count << endl;
   // cout << maxFrequencyAngle << endl;
 
-  if (movement_count == 30)
+  if (movement_count == 20)
   {
-    result_maxAngle = maxFrequencyAngle;
-    first_i = averageAngle_i;
-    if (first_i == 4 || first_i == -3 || first_i == maxFrequencyAngle)
+    result_maxAngle1 = maxFrequencyAngle1;
+    result_maxAngle2 = maxFrequencyAngle2;
+    result_maxAngle3 = maxFrequencyAngle3;
+    first_i = averageAngle_1;
+    if (first_i == 4 || first_i == -3 || first_i == maxFrequencyAngle1)
     {
       movement_count -= 5;
     }
@@ -703,10 +801,10 @@ void MASTER::check_moving(double averageAngle1)
     cout << first_i << endl;
   }
 
-  if (movement_count > 30 && c_flag == false)
+  if (movement_count > 20 && c_flag == false)
   {
-    last_i = averageAngle_i;
-    if (last_i == maxFrequencyAngle)
+    last_i = averageAngle_1;
+    if (last_i == maxFrequencyAngle1)
     {
       movement_count++;
     }
@@ -733,12 +831,78 @@ void MASTER::check_moving(double averageAngle1)
       }
     }
 
-    // else if (direction == 0)
+    // switch (averageAngle_2)
     // {
-    //   exist_moving = false;
-    //   movement_count = 0;
+    //   case -4:
+    //     cv::putText(output_c, "left", cv::Point(0, 81), 0.5, 1, cv::Scalar(0, 0, 0), 2, 8);
+    //     break;
+    //   case -3:
+    //     cv::putText(output_c, "left_down", cv::Point(0, 81), 0.5, 1, cv::Scalar(0, 0, 0), 2, 8);
+    //     break;
+    //   case -2:
+    //     cv::putText(output_c, "down", cv::Point(0, 81), 0.5, 1, cv::Scalar(0, 0, 0), 2, 8);
+    //     break;
+    //   case -1:
+    //     cv::putText(output_c, "right_down", cv::Point(0, 81), 0.5, 1, cv::Scalar(0, 0, 0), 2, 8);
+    //     break;
+    //   case 0:
+    //     cv::putText(output_c, "right", cv::Point(0, 81), 0.5, 1, cv::Scalar(0, 0, 0), 2, 8);
+    //     break;
+    //   case 1:
+    //     cv::putText(output_c, "right_up", cv::Point(0, 81), 0.5, 1, cv::Scalar(0, 0, 0), 2, 8);
+    //     break;
+    //   case 2:
+    //     cv::putText(output_c, "up", cv::Point(0, 81), 0.5, 1, cv::Scalar(0, 0, 0), 2, 8);
+    //     break;
+    //   case 3:
+    //     cv::putText(output_c, "left_up", cv::Point(0, 81), 0.5, 1, cv::Scalar(0, 0, 0), 2, 8);
+    //     break;
+    //   case 4:
+    //     cv::putText(output_c, "left", cv::Point(0, 81), 0.5, 1, cv::Scalar(0, 0, 0), 2, 8);
+    //     break;
     // }
+    // switch (averageAngle_3)
+    // {
+    //   case -4:
+    //     cv::putText(output_c, "left", cv::Point(0, 131), 0.5, 1, cv::Scalar(0, 0, 0), 2, 8);
+    //     break;
+    //   case -3:
+    //     cv::putText(output_c, "left_down", cv::Point(0, 131), 0.5, 1, cv::Scalar(0, 0, 0), 2, 8);
+    //     break;
+    //   case -2:
+    //     cv::putText(output_c, "down", cv::Point(0, 131), 0.5, 1, cv::Scalar(0, 0, 0), 2, 8);
+    //     break;
+    //   case -1:
+    //     cv::putText(output_c, "right_down", cv::Point(0, 131), 0.5, 1, cv::Scalar(0, 0, 0), 2, 8);
+    //     break;
+    //   case 0:
+    //     cv::putText(output_c, "right", cv::Point(0, 131), 0.5, 1, cv::Scalar(0, 0, 0), 2, 8);
+    //     break;
+    //   case 1:
+    //     cv::putText(output_c, "right_up", cv::Point(0, 131), 0.5, 1, cv::Scalar(0, 0, 0), 2, 8);
+    //     break;
+    //   case 2:
+    //     cv::putText(output_c, "up", cv::Point(0, 131), 0.5, 1, cv::Scalar(0, 0, 0), 2, 8);
+    //     break;
+    //   case 3:
+    //     cv::putText(output_c, "left_up", cv::Point(0, 131), 0.5, 1, cv::Scalar(0, 0, 0), 2, 8);
+    //     break;
+    //   case 4:
+    //     cv::putText(output_c, "left", cv::Point(0, 131), 0.5, 1, cv::Scalar(0, 0, 0), 2, 8);
+    //     break;
+    // }
+
+    // cout << "3: " << averageAngle3 << endl;
+    // cout << endl;
   }
+}
+void MASTER::check_moving(double averageAngle1)
+{
+  // else if (direction == 0)
+  // {
+  //   exist_moving = false;
+  //   movement_count = 0;
+  // }
 }
 
 // c 라는걸 판별 해줌 예를 들어 c 모양이라고 한다면 위 아래 왼쪽은 cnt++ 3번이 되기 때문에 c리는걸 알수 있음

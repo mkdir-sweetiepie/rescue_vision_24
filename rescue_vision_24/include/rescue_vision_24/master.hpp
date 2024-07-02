@@ -85,11 +85,19 @@ public:
   int first_i = 0;
   int last_i = 0;
   int direction = 0;
-  int direction_i;
-  std::map<int, int> angleFrequency;
-  int maxFrequencyAngle = 0;  // 최다 빈도 각도
-  int maxFrequency = 0;       // 최다 빈도 값
-  int result_maxAngle;
+  int direction_i = 2;
+  std::map<int, int> angleFrequency1;
+  std::map<int, int> angleFrequency2;
+  std::map<int, int> angleFrequency3;
+  int maxFrequencyAngle1 = 0;  // 최다 빈도 각도
+  int maxFrequencyAngle2 = 0;
+  int maxFrequencyAngle3 = 0;
+  int maxFrequency1= 0;       // 최다 빈도 값
+  int maxFrequency2= 0;
+  int maxFrequency3= 0;
+  int result_maxAngle1;
+  int result_maxAngle2;
+  int result_maxAngle3;
 
   void choose_circle(Point center, int two_radius);
   void catch_c(Point center, int two_radius);
@@ -101,6 +109,10 @@ public:
   bool victim_start = false;
   bool qr_flag = false;
   bool c_flag = false;
+
+  int averageAngle_1;
+  int averageAngle_2;
+  int averageAngle_3;
 
   // cam 정보 (1)realsense (2)usbcam ========================
   std::string cam1_topic_name;
