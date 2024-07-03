@@ -6,6 +6,19 @@ Victim Box mission. Used realsense_camera.
 ## Table of Contents
 - [Build & Usage](#build--usage)
 
+## topic 정보
+[(rescue_vision_24 <-> 선배님 UI) 토픽 정보]
+1)pub
+결과 이미지 : victim_image
+열화상 이미지 :img_result_thermal
+2)sub
+victim 시작 버튼 : victim_start
+[(rescue_vision_24 <-> 카메라) 토픽 정보]
+1)sub
+realsense 이미지 : /camera/color/image_raw
+열화상 이미지 : thermal_camera/image_colored
+
+
 ## Build & Usage
 #### Build from source code
 ```shell
