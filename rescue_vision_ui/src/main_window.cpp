@@ -71,10 +71,9 @@ void MainWindow::update_thermal()
 }
 
 void MainWindow::button()
-{
-  if (start_flag == 0)
-    start_flag = 1;
-  std_msgs::Int32 msg;
+{ 
+  start_flag = "start";
+  std_msgs::String msg;
   msg.data = start_flag;
   qnode.victim_start.publish(msg);
 }

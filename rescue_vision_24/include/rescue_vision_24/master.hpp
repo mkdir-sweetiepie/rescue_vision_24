@@ -103,10 +103,9 @@ public:
   void catch_c(Point center, int two_radius);
   void detect_way();
   bool check_black(const Mat& binary_mat);
-  void check_moving(double averageAngle1);
   void set_c();
   //========================================
-  bool victim_start = false;
+  std::string victim_start = "";
   bool qr_flag = false;
   bool c_flag = false;
 
@@ -129,10 +128,9 @@ private:
 
   image_transport::Subscriber img_sub;
   image_transport::Subscriber img_sub_thermal;
-  ros::Subscriber victim_start_sub;
   void imageCallBack(const sensor_msgs::ImageConstPtr& msg_img);
   void imageCallBack_thermal(const sensor_msgs::ImageConstPtr& msg_img);
-  void start_CallBack(const std_msgs::Int32ConstPtr& msg_img);
+
 };
 
 }  // namespace vision_rescue_24

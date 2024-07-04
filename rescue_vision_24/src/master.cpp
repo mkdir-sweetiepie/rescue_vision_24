@@ -93,7 +93,7 @@ bool MASTER::init()
   ROS_INFO("Starting Rescue Vision With Camera : %s", cam1_topic_name.c_str());
   img_sub = img.subscribe(cam1_topic_name, 1, &MASTER::imageCallBack, this);  // camera/color/image_raw
   img_sub_thermal = img.subscribe("/thermal_camera/image_colored", 1, &MASTER::imageCallBack_thermal, this);
-  victim_start_sub = n.subscribe("/victim_start", 1, &MASTER::start_CallBack, this);
+  
   return true;
 }
 
@@ -109,6 +109,7 @@ void MASTER::run()
       if (isRecv_thermal == true)
       {
         set_thermal();
+        victim_start = "start";
         img_result_thermal.publish(
             cv_bridge::CvImage(std_msgs::Header(), sensor_msgs::image_encodings::BGR8, thermal_mat).toImageMsg());
       }
@@ -127,11 +128,6 @@ void MASTER::imageCallBack(const sensor_msgs::ImageConstPtr& msg_img)
       isRecv = true;
     }
   }
-}
-
-void MASTER::start_CallBack(const std_msgs::Int32ConstPtr& msg_img)
-{
-  victim_start = msg_img->data;
 }
 
 void MASTER::imageCallBack_thermal(const sensor_msgs::ImageConstPtr& msg_img)
@@ -269,7 +265,7 @@ void MASTER::update()
     default:
       break;
   }
-  if (victim_start == true)
+  if (victim_start == "start")
   {
     set_qr();
     set_hazmat();
@@ -590,7 +586,6 @@ void MASTER::detect_way()
     }
   }
   // cout << "1: " << averageAngle1 << endl;
-  check_moving(averageAngle1);
 
   //-------------------------------------------------------one----------------------------------------------------
   // (badly handpicked coords):
@@ -831,78 +826,9 @@ void MASTER::detect_way()
       }
     }
 
-    // switch (averageAngle_2)
-    // {
-    //   case -4:
-    //     cv::putText(output_c, "left", cv::Point(0, 81), 0.5, 1, cv::Scalar(0, 0, 0), 2, 8);
-    //     break;
-    //   case -3:
-    //     cv::putText(output_c, "left_down", cv::Point(0, 81), 0.5, 1, cv::Scalar(0, 0, 0), 2, 8);
-    //     break;
-    //   case -2:
-    //     cv::putText(output_c, "down", cv::Point(0, 81), 0.5, 1, cv::Scalar(0, 0, 0), 2, 8);
-    //     break;
-    //   case -1:
-    //     cv::putText(output_c, "right_down", cv::Point(0, 81), 0.5, 1, cv::Scalar(0, 0, 0), 2, 8);
-    //     break;
-    //   case 0:
-    //     cv::putText(output_c, "right", cv::Point(0, 81), 0.5, 1, cv::Scalar(0, 0, 0), 2, 8);
-    //     break;
-    //   case 1:
-    //     cv::putText(output_c, "right_up", cv::Point(0, 81), 0.5, 1, cv::Scalar(0, 0, 0), 2, 8);
-    //     break;
-    //   case 2:
-    //     cv::putText(output_c, "up", cv::Point(0, 81), 0.5, 1, cv::Scalar(0, 0, 0), 2, 8);
-    //     break;
-    //   case 3:
-    //     cv::putText(output_c, "left_up", cv::Point(0, 81), 0.5, 1, cv::Scalar(0, 0, 0), 2, 8);
-    //     break;
-    //   case 4:
-    //     cv::putText(output_c, "left", cv::Point(0, 81), 0.5, 1, cv::Scalar(0, 0, 0), 2, 8);
-    //     break;
-    // }
-    // switch (averageAngle_3)
-    // {
-    //   case -4:
-    //     cv::putText(output_c, "left", cv::Point(0, 131), 0.5, 1, cv::Scalar(0, 0, 0), 2, 8);
-    //     break;
-    //   case -3:
-    //     cv::putText(output_c, "left_down", cv::Point(0, 131), 0.5, 1, cv::Scalar(0, 0, 0), 2, 8);
-    //     break;
-    //   case -2:
-    //     cv::putText(output_c, "down", cv::Point(0, 131), 0.5, 1, cv::Scalar(0, 0, 0), 2, 8);
-    //     break;
-    //   case -1:
-    //     cv::putText(output_c, "right_down", cv::Point(0, 131), 0.5, 1, cv::Scalar(0, 0, 0), 2, 8);
-    //     break;
-    //   case 0:
-    //     cv::putText(output_c, "right", cv::Point(0, 131), 0.5, 1, cv::Scalar(0, 0, 0), 2, 8);
-    //     break;
-    //   case 1:
-    //     cv::putText(output_c, "right_up", cv::Point(0, 131), 0.5, 1, cv::Scalar(0, 0, 0), 2, 8);
-    //     break;
-    //   case 2:
-    //     cv::putText(output_c, "up", cv::Point(0, 131), 0.5, 1, cv::Scalar(0, 0, 0), 2, 8);
-    //     break;
-    //   case 3:
-    //     cv::putText(output_c, "left_up", cv::Point(0, 131), 0.5, 1, cv::Scalar(0, 0, 0), 2, 8);
-    //     break;
-    //   case 4:
-    //     cv::putText(output_c, "left", cv::Point(0, 131), 0.5, 1, cv::Scalar(0, 0, 0), 2, 8);
-    //     break;
-    // }
-
     // cout << "3: " << averageAngle3 << endl;
     // cout << endl;
   }
-}
-void MASTER::check_moving(double averageAngle1)
-{
-  // else if (direction == 0)
-  // {
-  //   exist_moving = false;
-  //   movement_count = 0;
-  // }
 }
 
 // c 라는걸 판별 해줌 예를 들어 c 모양이라고 한다면 위 아래 왼쪽은 cnt++ 3번이 되기 때문에 c리는걸 알수 있음

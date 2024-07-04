@@ -15,6 +15,7 @@
 #include <QMainWindow>
 #include "ui_main_window.h"
 #include "qnode.hpp"
+#include "std_msgs/String.h"
 
 /*****************************************************************************
 ** Namespace
@@ -35,7 +36,7 @@ class MainWindow : public QMainWindow
 public:
   MainWindow(int argc, char** argv, QWidget* parent = 0);
   ~MainWindow();
-  int start_flag = 0;
+  std::string start_flag = "";
 
 public Q_SLOTS:
   void update();

@@ -56,7 +56,7 @@ bool QNode::init()
   image_transport::ImageTransport image(n);
   image_sub = image.subscribe("/victim_image", 1, &QNode::victim_Callback, this);
   thermal_sub = image.subscribe("/img_result_thermal", 1, &QNode::thermal_Callback, this);
-  victim_start = n.advertise<std_msgs::Int32>("/victim_start", 1);
+  victim_start = n.advertise<std_msgs::String>("/victim_start", 1);
   start();
   return true;
 }
