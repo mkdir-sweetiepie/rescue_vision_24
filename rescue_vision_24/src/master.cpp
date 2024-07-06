@@ -15,7 +15,7 @@
 
 #include "../include/rescue_vision_24/master.hpp"
 
-constexpr float CONFIDENCE_THRESHOLD = 0.5;  // 확률 경계값
+constexpr float CONFIDENCE_THRESHOLD = 0.52;  // 확률 경계값
 constexpr float NMS_THRESHOLD = 0.4;
 constexpr int NUM_CLASSES = 15;
 const cv::Scalar colors[] = { { 0, 255, 255 }, { 255, 255, 0 }, { 0, 255, 0 }, { 255, 0, 0 } };
