@@ -74,7 +74,7 @@ MASTER::~MASTER()
 
 bool MASTER::init()
 {
-  ros::init(init_argc, init_argv, "Master");
+  ros::init(init_argc, init_argv, "master");
   if (!ros::master::check())
   {
     return false;
@@ -91,9 +91,10 @@ bool MASTER::init()
   n.param<std::string>("cam1_topic", cam1_topic_name, "/camera/color/image_raw");  // realsense
   n.param<std::string>("cam2_topic", cam2_topic_name, "/usb_cam/image_raw");       // usbcam
   ROS_INFO("Starting Rescue Vision With Camera : %s", cam1_topic_name.c_str());
+
   img_sub = img.subscribe(cam1_topic_name, 1, &MASTER::imageCallBack, this);  // camera/color/image_raw
   img_sub_thermal = img.subscribe("/thermal_camera/image_colored", 1, &MASTER::imageCallBack_thermal, this);
-  
+  ROS_INFO("Starting Rescue Vision With Camera : %s", "/thermal_camera/image_colored");
   return true;
 }
 
@@ -109,10 +110,10 @@ void MASTER::run()
       if (isRecv_thermal == true)
       {
         set_thermal();
-        victim_start = "start";
         img_result_thermal.publish(
             cv_bridge::CvImage(std_msgs::Header(), sensor_msgs::image_encodings::BGR8, thermal_mat).toImageMsg());
       }
+      // victim_start = "start";
       update();
     }
   }
@@ -265,12 +266,11 @@ void MASTER::update()
     default:
       break;
   }
-  if (victim_start == "start")
-  {
-    set_qr();
-    set_hazmat();
-    set_c();
-  }
+
+  set_qr();
+  set_hazmat();
+  set_c();
+
   delete original;
   isRecv = false;
 }
