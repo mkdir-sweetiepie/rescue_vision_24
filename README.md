@@ -29,9 +29,13 @@ $ cd ..
 $ catkin_make
 ```
 
-## rescue_vision_ui는 테스트 용이라서 삭제 후 사용하시면 됩니다.
+## !!!!!!! rescue_vision_ui는 테스트 용이라서 삭제 후 사용하시면 됩니다.!!!!!!!
 rosrun rescue_vision_ui rescue_vision_ui 
-대회에서는 사용 X
+대회에서는 사용 X 대회에서는 아래 코드만 실행 /victim_start에서 start와 end받을때 각가 rescue_vision_24 노드가 켜지고 꺼짐
+```
+$ rosrun victim_request_manager victim_request_manager
+```
+
 
 #### How to use (test code) 
 ```
