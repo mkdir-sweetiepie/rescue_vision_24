@@ -114,8 +114,8 @@ public:
   int averageAngle_3;
 
   // cam 정보 (1)realsense (2)usbcam ========================
-  std::string cam1_topic_name;
-  std::string cam2_topic_name;
+  // std::string cam1_topic_name;
+  // std::string cam2_topic_name;
 
   std_msgs::Int32 msg1, msg2;
 

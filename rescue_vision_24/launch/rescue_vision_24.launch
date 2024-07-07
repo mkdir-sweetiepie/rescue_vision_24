@@ -1,9 +1,9 @@
 <launch>
-    <arg name="camera_type" default="rs" />
+    <!--<arg name="camera_type" default="rs" />
     <arg name="type" />
     <arg name="camera"  default="/camera/color/image_raw"  />
     <arg name="rs1" default="021222073502" />
-    <arg name="rs2" default="948522070995" />
+    <arg name="rs2" default="948522070995" />-->
 
 
   <!-- front realsense default="/camera/color/image_raw" 
@@ -17,13 +17,10 @@ default="/usb_cam/image_raw"
     <group if="$(eval camera_type=='usb')" >
         <include file="$(find usb_cam)/launch/usb_cam-test.launch" >
         </include>
-    </group>
+    </group>-->
     
     <include file="$(find seekthermal_ros)/launch/seekthermal_ros.launch" />
-    카메라 이미 켰다는 가정을 한다면 필요 없는 부분-->
   
-    <node pkg="rescue_vision_24" type="master" name="master" output="screen">
-        <param name="camera" type="string" value="$(arg camera)"/>
-    </node>     
+    <node pkg="rescue_vision_24" type="master" name="master" output="screen"></node>     
 
 </launch>

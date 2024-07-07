@@ -88,11 +88,11 @@ bool MASTER::init()
   img_result_thermal = img.advertise("/img_result_thermal", 1);
 
   // cam 정보
-  n.param<std::string>("cam1_topic", cam1_topic_name, "/camera/color/image_raw");  // realsense
-  n.param<std::string>("cam2_topic", cam2_topic_name, "/usb_cam/image_raw");       // usbcam
-  ROS_INFO("Starting Rescue Vision With Camera : %s", cam1_topic_name.c_str());
+  // n.param<std::string>("cam1_topic", cam1_topic_name, "/camera/color/image_raw");  // realsense
+  // n.param<std::string>("cam2_topic", cam2_topic_name, "/usb_cam/image_raw");       // usbcam
+  //ROS_INFO("Starting Rescue Vision With Camera : %s", cam1_topic_name.c_str());
 
-  img_sub = img.subscribe(cam1_topic_name, 1, &MASTER::imageCallBack, this);  // camera/color/image_raw
+  img_sub = img.subscribe("/camera/color/image_raw", 1, &MASTER::imageCallBack, this);  // camera/color/image_raw
   img_sub_thermal = img.subscribe("/thermal_camera/image_colored", 1, &MASTER::imageCallBack_thermal, this);
   ROS_INFO("Starting Rescue Vision With Camera : %s", "/thermal_camera/image_colored");
   return true;
