@@ -5,17 +5,22 @@ VICTIM_REQUEST_MANAGER::VICTIM_REQUEST_MANAGER()
   ros::NodeHandle n;
   request_sub_ = n.subscribe("/victim_start", 100, &VICTIM_REQUEST_MANAGER::requestCallback, this);
   response_pub_ = n.advertise<std_msgs::String>("/victim_end", 100);
+  bool received_start = false;
 }
 
 void VICTIM_REQUEST_MANAGER::requestCallback(const std_msgs::String::ConstPtr& msg)
 {
   std::string request = msg->data;
-
+  
   if (request == "start")
   {
-    std::string operate_command = "roslaunch rescue_vision_24 rescue_vision_24.launch &";
-    ROS_INFO("Received: victim %s -> operate", request.c_str());
-    system(operate_command.c_str());
+    if (!received_start)
+    {
+      received_start = true;
+      std::string operate_command = "roslaunch rescue_vision_24 rescue_vision_24.launch &";
+      ROS_INFO("Received: victim %s -> operate", request.c_str());
+      system(operate_command.c_str());
+    }
   }
   else if (request == "end")
   {
