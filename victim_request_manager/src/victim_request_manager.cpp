@@ -4,7 +4,7 @@ VICTIM_REQUEST_MANAGER::VICTIM_REQUEST_MANAGER()
 {
   ros::NodeHandle n;
   request_sub_ = n.subscribe("/victim_start", 100, &VICTIM_REQUEST_MANAGER::requestCallback, this);
-  response_pub_ = n.advertise<std_msgs::String>("/victim_end", 100);
+  // response_pub_ = n.advertise<std_msgs::String>("/victim_end", 100);
 }
 
 void VICTIM_REQUEST_MANAGER::requestCallback(const std_msgs::String::ConstPtr& msg)
