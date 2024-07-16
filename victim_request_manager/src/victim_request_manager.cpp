@@ -5,31 +5,28 @@ VICTIM_REQUEST_MANAGER::VICTIM_REQUEST_MANAGER()
   ros::NodeHandle n;
   request_sub_ = n.subscribe("/victim_start", 100, &VICTIM_REQUEST_MANAGER::requestCallback, this);
   response_pub_ = n.advertise<std_msgs::String>("/victim_end", 100);
-  bool received_start = false;
 }
 
 void VICTIM_REQUEST_MANAGER::requestCallback(const std_msgs::String::ConstPtr& msg)
 {
   std::string request = msg->data;
-  
-  if (request == "start")
+  bool received_start = false;
+
+  if (!received_start)
   {
-    if (!received_start)
+    received_start = true;
+    if (request == "start")
     {
-      received_start = true;
-      std::string operate_command = "roslaunch rescue_vision_24 rescue_vision_24.launch &";
+      std::string operate_command = "rosrun rescue_vision_24 master &";
       ROS_INFO("Received: victim %s -> operate", request.c_str());
       system(operate_command.c_str());
     }
-  }
-  else if (request == "end")
-  {
-    std::string master_node_kill = "rosnode kill /master &";
-    std::string seekthermal_node_kill = "rosnode kill /seekthermalRosNode &";
-    ROS_INFO("Received: victim %s -> done", request.c_str());
-    system(master_node_kill.c_str());
-    system(seekthermal_node_kill.c_str());
-    //ros::shutdown();
+    else if (request == "end")
+    {
+      std::string master_node_kill = "rosnode kill /master &";
+      ROS_INFO("Received: victim %s -> done", request.c_str());
+      system(master_node_kill.c_str());
+    }
   }
 }
 
