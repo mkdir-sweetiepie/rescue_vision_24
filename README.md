@@ -1,44 +1,117 @@
-# rescue_vision_24
-**Author** : <a href="https://github.com/mkdir-sweetiepie"><img src="https://img.shields.io/badge/Ji Hyeon Hong-white?style=flat&logo=github&logoColor=red"/></a>
+# Rescue Vision 24
 
-## Description
-Victim Box mission. Used realsense_camera. 
+<a href="https://github.com/mkdir-sweetiepie"><img src="https://img.shields.io/badge/Ji Hyeon Hong-white?style=flat&logo=github&logoColor=red"/></a>
+
+Victim detection system for rescue robot Victim Box mission using Intel RealSense and Thermal camera. Tested on ROS Noetic.
+
 ## Table of Contents
-- [Build & Usage](#build--usage)
+- [Overview](#overview)
+- [System Requirements](#system-requirements)
+- [Package Structure](#package-structure)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Topic Structure](#topic-structure)
+  
+## Overview
 
-## topic 정보
+This project is a victim detection system designed for rescue robot competitions. It utilizes both Intel RealSense RGB camera and thermal camera to detect victims in disaster scenarios.
+
+### Key Features
+- **Victim Detection**: Real-time victim detection using RGB images
+- **Thermal Imaging**: Thermal camera integration for heat signature detection
+- **Request Manager**: Automated node management based on mission start/end signals
+- **RealSense Integration**: Intel RealSense camera support
+
+## System Requirements
+
+| Component | Version |
+|-----------|---------|
+| Ubuntu | 20.04 LTS |
+| ROS | Noetic |
+| OpenCV | 4.x |
+| Qt | 5.x |
+| Intel RealSense SDK | 2.x |
+
+### Hardware
+- Intel RealSense Depth Camera (D435/D435i/D455)
+- Thermal Camera
+
+## Package Structure
 ```
-[(rescue_vision_24 <-> 선배님 UI) 토픽 정보]
-1)pub
-결과 이미지 : victim_image
-열화상 이미지 :img_result_thermal
-2)sub
-victim 시작 버튼 : victim_start
-[(rescue_vision_24 <-> 카메라) 토픽 정보]
-1)sub
-realsense 이미지 : /camera/color/image_raw
-열화상 이미지 : thermal_camera/image_colored
+rescue_vision_24/
+├── rescue_vision_24/           # Main vision processing node
+│   ├── include/
+│   ├── src/
+│   └── launch/
+├── rescue_vision_ui/           # Test GUI node (for testing only)
+│   ├── include/
+│   ├── src/
+│   └── ui/
+└── victim_request_manager/     # Mission request manager node
+    ├── include/
+    └── src/
 ```
 
-## Build & Usage
-#### Build from source code
-```shell
-$ cd ~/${workspace_name}_ws/src
-$ git clone https://github.com/RO-BIT-Intelligence-Robot-Team/rescue_vision_24.git
-$ cd ..
-$ catkin_make
+### Package Description
+
+| Package | Description |
+|---------|-------------|
+| `rescue_vision_24` | Main victim detection and image processing |
+| `rescue_vision_ui` | Qt-based test GUI (not for competition use) |
+| `victim_request_manager` | Manages node activation based on start/end signals |
+
+## Installation
+
+### 1. Set up ROS Workspace
+```bash
+mkdir -p ~/${workspace_name}_ws/src
+cd ~/${workspace_name}_ws/src
 ```
 
-## !!!!!!! rescue_vision_ui는 테스트 용이라서 삭제 후 사용하시면 됩니다.!!!!!!!
-rosrun rescue_vision_ui rescue_vision_ui 
-대회에서는 사용 X 대회에서는 아래 코드만 실행 /victim_start에서 start와 end받을때 각가 rescue_vision_24 노드가 켜지고 꺼짐
-```
-$ rosrun victim_request_manager victim_request_manager
+### 2. Clone Repository
+```bash
+git clone https://github.com/RO-BIT-Intelligence-Robot-Team/rescue_vision_24.git
 ```
 
+### 3. Build
+```bash
+cd ~/${workspace_name}_ws
+catkin_make
+source devel/setup.bash
+```
 
-#### How to use (test code) 
+## Usage
+
+### For Competition
+> ⚠️ **Note**: `rescue_vision_ui` is for testing purposes only. Delete it before competition use.
+
+The `rescue_vision_24` node automatically starts and stops when receiving `start` and `end` signals from `/victim_start` topic.
+```bash
+rosrun victim_request_manager victim_request_manager
 ```
-$ roslaunch rescue_vision_24 rescue_vision_24.launch 
-$ rosrun rescue_vision_ui rescue_vision_ui
+
+### For Testing
+```bash
+# Terminal 1: Launch vision node
+roslaunch rescue_vision_24 rescue_vision_24.launch
+
+# Terminal 2: Run test GUI
+rosrun rescue_vision_ui rescue_vision_ui
 ```
+
+## Topic Structure
+
+### Communication with Main UI
+
+| Type | Topic | Description |
+|------|-------|-------------|
+| Publish | `victim_image` | Result image with detection |
+| Publish | `img_result_thermal` | Processed thermal image |
+| Subscribe | `victim_start` | Mission start/end signal |
+
+### Communication with Cameras
+
+| Type | Topic | Description |
+|------|-------|-------------|
+| Subscribe | `/camera/color/image_raw` | RealSense RGB image |
+| Subscribe | `thermal_camera/image_colored` | Thermal camera image |
